@@ -14,8 +14,9 @@ DROP TABLE IF EXISTS partida;
 DROP TABLE IF EXISTS jugador;
 DROP TRIGGER IF EXISTS chequeo_solapamiento;
 DROP TRIGGER IF EXISTS eliminar_jugador;
+DROP TRIGGER IF EXISTS cheq_tamceld;
 
-
+/*Tabla de jugadores*/
 CREATE TABLE jugador(
 	id int NOT NULL AUTO_INCREMENT,
 	nick VARCHAR(20),
@@ -26,18 +27,6 @@ CREATE TABLE jugador(
 	UNIQUE (nick,email),
 	CONSTRAINT jugador_pk PRIMARY KEY (id)
 )ENGINE=InnoDB;
-
-
-INSERT INTO jugador (id,nick,email,nombreAPellido,fechaNac,edad) VALUES
-(1,'plomero','plomero@gmail.com','Raul Perez','1986-05-05',28),
-(2,'elmaury','maury@gmail.com','Mauricio Delle Vedove','1993-03-03',22),
-(3,'Matias','matu_dmr@hotmail.com','Matias Rondeau','1986-09-01',28),
-(4,'papita','fran@gmail.com','Francisco Roig','1993-03-06',21),
-(5,'Fantasma','fantas@gmail.com','Arruabarrena','1970-03-04',45);
-
-
-/*tableros 6x7 (defaults), 8x7, 9x7, 10x7,
-8x8.*/
 
 
 CREATE TABLE partida(
@@ -56,21 +45,11 @@ CREATE TABLE partida(
 )ENGINE=InnoDB;
 
 
-INSERT INTO partida(idpartida,resultado,estado,fecha,fila,columna,horaInicio,horaFin,id1,id2) VALUES
-(3,'Empate',true,'2015-02-02',8,8,'15:00','16:00',1,2),
-(4,'Ganador',true,'2015-02-03',8,7,'14:00','14:15',3,4);
-
-
 CREATE TABLE celda(
-	filx INT,  /* fila x*/
-	coly INT, /* columna y*/
-	PRIMARY KEY (filx,coly) /*no puede ser primary key porque se repite para otras jugadas VERRR!*/
+	filx INT,
+	coly INT,
+	PRIMARY KEY (filx,coly)
 )ENGINE=InnoDB;
-
-INSERT INTO celda (filx,coly) VALUES
-(1,2),
-(9,9);
-
 
 
 CREATE TABLE tiene(
@@ -82,18 +61,14 @@ CREATE TABLE tiene(
 	CONSTRAINT fk_idx FOREIGN KEY (idx, idy) REFERENCES celda (filx, coly) ON DELETE CASCADE
 )ENGINE=InnoDB;
 
-INSERT INTO tiene (num_mov,idpartida,idx,idy) VALUES
-(1,3,1,2),
-(2,3,9,9);
 
-
+/*Tabla de jugadores eliminados*/
 CREATE TABLE auditoria_Eliminados(
 	id int PRIMARY KEY,
 	nickElim VARCHAR(20), 
 	fechaElim datetime,
 	eliminadoPor VARCHAR(10) /*Quien elimino el jugador*/
 )ENGINE=InnoDB;
-
 
 
 /*TRIGGER que genera la tabla de Auditoria de jugadores Eliminados*/
@@ -108,8 +83,8 @@ delimiter ;
 
 
 
+/*TRIGGER que controla que no se solapen las partidas*/
 delimiter $$
-
 CREATE TRIGGER chequeo_solapamiento BEFORE INSERT ON partida
 FOR EACH ROW
 BEGIN 
@@ -129,4 +104,40 @@ END$$
 delimiter ;
 
 
+/*TRIGGER que controla que el movimiento insertado este dentro del tablero*/
+delimiter $$
+CREATE TRIGGER cheq_tamceld BEFORE INSERT ON tiene 
+FOR EACH ROW
+BEGIN
+	DECLARE f INT;
+	DECLARE c INT; 
+	SET f =  (SELECT SUM(fila) FROM partida WHERE idpartida=NEW.idpartida); 
+	SET c =  (SELECT SUM(columna) FROM partida WHERE idpartida=NEW.idpartida); 
+	IF (((NEW.idx>=0) AND (NEW.idx<=f)) AND ((NEW.idy>=0) AND (NEW.idy<=c))) THEN	
+		INSERT INTO celda (filx,coly)VALUES(NEW.idx,NEW.idy);
+	ELSE 
+		 SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = " POSICION INCORRECTA " ;
 
+	END IF;	
+	END$$
+delimiter ;
+
+
+/*Inserta en la tabla jugadores*/
+INSERT INTO jugador (id,nick,email,nombreAPellido,fechaNac,edad) VALUES
+(1,'plomero','plomero@gmail.com','Raul Perez','1986-05-05',28),
+(2,'elmaury','maury@gmail.com','Mauricio Delle Vedove','1993-03-03',22),
+(3,'Matias','matu_dmr@hotmail.com','Matias Rondeau','1986-09-01',28),
+(4,'papita','fran@gmail.com','Francisco Roig','1993-03-06',21),
+(5,'Fantasma','fantas@gmail.com','Arruabarrena','1970-03-04',45);
+
+
+/*Inserta en la tabla partida*/
+INSERT INTO partida(idpartida,resultado,estado,fecha,fila,columna,horaInicio,horaFin,id1,id2) VALUES
+(3,'Empate',true,'2015-02-02',8,8,'15:00','16:00',1,2),
+(4,'Ganador',true,'2015-02-03',8,7,'14:00','14:15',3,4);
+
+
+/*Inserta en la tabla tiene*/
+INSERT INTO tiene (num_mov,idpartida,idx,idy) VALUES
+(1,3,1,2);
