@@ -125,17 +125,18 @@ delimiter ;
 
 /*Inserta en la tabla jugadores*/
 INSERT INTO jugador (id,nick,email,nombreAPellido,fechaNac,edad) VALUES
-(1,'plomero','plomero@gmail.com','Raul Perez','1986-05-05',28),
-(2,'elmaury','maury@gmail.com','Mauricio Delle Vedove','1993-03-03',22),
+(1,'Mauri','Mauri@gmail.com','Mauricio Delle Vedove','1986-05-05',28),
+(2,'Fran','fran@gmail.com','Francisco Roig','1993-03-03',22),
 (3,'Matias','matu_dmr@hotmail.com','Matias Rondeau','1986-09-01',28),
-(4,'papita','fran@gmail.com','Francisco Roig','1993-03-06',21),
-(5,'Fantasma','fantas@gmail.com','Arruabarrena','1970-03-04',45);
+(4,'j1','j1@gmail.com','j1','1993-03-06',21),
+(5,'j2','j2@gmail.com','j2','1970-03-04',45);
 
 
 /*Inserta en la tabla partida*/
 INSERT INTO partida(idpartida,resultado,estado,fecha,fila,columna,horaInicio,horaFin,id1,id2) VALUES
 (3,'Empate',true,'2015-02-02',8,8,'15:00','16:00',1,2),
-(4,'Ganador',true,'2015-02-03',8,7,'14:00','14:15',3,4);
+(4,'Perder',true,'2015-02-02',8,8,'15:00','16:00',3,4),
+(5,'Ganador',true,'2015-02-03',8,7,'14:00','14:15',1,5);
 
 
 /*Inserta en la tabla tiene*/
