@@ -53,7 +53,7 @@ CREATE TABLE celda(
 
 
 CREATE TABLE tiene(
-	num_mov INT NOT NULL PRIMARY KEY  , /*numero de movimientos */ 
+	numMov INT NOT NULL PRIMARY KEY  , /*numero de movimientos */ 
 	idpartida INT, 
 	idx INT,
 	idy INT,
@@ -64,10 +64,10 @@ CREATE TABLE tiene(
 
 /*Tabla de jugadores eliminados*/
 CREATE TABLE auditoria_Eliminados(
-	id int PRIMARY KEY,
+	id_jugador_eliminado int PRIMARY KEY,
 	nickElim VARCHAR(20), 
 	fechaElim datetime,
-	eliminadoPor VARCHAR(10) /*Quien elimino el jugador*/
+	eliminadoPor VARCHAR(50) /*Quien elimino el jugador*/
 )ENGINE=InnoDB;
 
 
@@ -77,7 +77,7 @@ delimiter $$
 CREATE TRIGGER eliminar_jugador BEFORE DELETE on jugador 
 FOR EACH ROW
 BEGIN
-	INSERT INTO auditoria_Eliminados (id,nickElim,fechaElim,eliminadoPor) VALUES (Old.id,Old.nick,SYSDATE(),CURRENT_USER());
+	INSERT INTO auditoria_Eliminados (id_jugador_eliminado,nickElim,fechaElim,eliminadoPor) VALUES (Old.id,Old.nick,SYSDATE(),CURRENT_USER());
 END$$
 delimiter ;
 
@@ -89,7 +89,7 @@ CREATE TRIGGER chequeo_solapamiento BEFORE INSERT ON partida
 FOR EACH ROW
 BEGIN 
 	IF EXISTS ( SELECT fecha,horaInicio,horaFin,id1,id2 FROM partida 
-		WHERE fecha=NEW.fecha AND ( (new.id1=id1 or new.id1=id2 ) 
+		WHERE fecha=NEW.fecha AND (estado=false) AND ( (new.id1=id1 or new.id1=id2 ) 
 		OR (new.id2=id1 or new.id2=id2) ) /*Para igual fecha, ver las horas disponibles que tiene para jugar*/
 		AND (horaInicio<=NEW.horaInicio AND NEW.horaInicio<=horaFin  /*primer caso que la hora nueva este dentro de las hs q ya tiene*/
 		AND NEW.horaFin>=horaInicio AND NEW.horaFin<=horaFin) 
@@ -113,7 +113,7 @@ BEGIN
 	DECLARE c INT; 
 	SET f =  (SELECT SUM(fila) FROM partida WHERE idpartida=NEW.idpartida); 
 	SET c =  (SELECT SUM(columna) FROM partida WHERE idpartida=NEW.idpartida); 
-	IF (((NEW.idx>=0) AND (NEW.idx<=f)) AND ((NEW.idy>=0) AND (NEW.idy<=c))) THEN	
+	IF (((NEW.idx>0) AND (NEW.idx<=f)) AND ((NEW.idy>0) AND (NEW.idy<=c))) THEN	
 		INSERT INTO celda (filx,coly)VALUES(NEW.idx,NEW.idy);
 	ELSE 
 		 SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = " POSICION INCORRECTA " ;
@@ -140,5 +140,5 @@ INSERT INTO partida(idpartida,resultado,estado,fecha,fila,columna,horaInicio,hor
 
 
 /*Inserta en la tabla tiene*/
-INSERT INTO tiene (num_mov,idpartida,idx,idy) VALUES
+INSERT INTO tiene (numMov,idpartida,idx,idy) VALUES
 (1,3,1,2);
