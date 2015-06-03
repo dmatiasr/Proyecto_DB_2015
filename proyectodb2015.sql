@@ -5,6 +5,9 @@
 
 	Modela la Base de datos del Juego
 	"Cuatro En Linea"
+
+	CAMBIOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO !!!
+
  */
 
 DROP TABLE IF EXISTS tiene;
